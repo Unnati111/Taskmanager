@@ -1,0 +1,178 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>Task Manager</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.2/angular.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-drag-and-drop-lists/2.1.0/angular-drag-and-drop-lists.min.js" integrity="sha512-tqWQpa8YEeq6z/Fr/LvkUrH5rk0VhlKtYlyD5hKVQWdvQrhMS15OHvu2oR/b8HR/BwwCxD+1VKT/74wF/M39rg==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-drag-and-drop-lists/2.1.0/angular-drag-and-drop-lists.js" integrity="sha512-QpBGWC8icVOAoH3syv5mJ0OFtbCFn+3O6SHJV9cQQ6gxq1XVN0Axg66v8BUF4mfwsC8tHEZ3+w9DQq6gp/pZiQ==" crossorigin="anonymous"></script>
+    <script src="devza.js"></script>
+    <link rel="stylesheet" href="devza.css" />
+</head>
+<body>
+    <div ng-app="myapp" ng-controller="myctrl" class="container-fluid">
+        <div class="row">
+            <div class="col-md-1" style="padding-left: 0px;">
+                <nav class="sidebar-navigation">
+                    <ul>
+                        <li style=" color: lightgray;">
+                            <i class="fa fa-user-circle-o" aria-hidden="true"></i>
+
+                        </li>
+                        <li class="active b" ng-click="showtasks()">
+                            <i class="fa fa-bookmark"></i>
+                            <span class="tooltip">Tasks</span>
+                        </li>
+                        <li class="b" ng-click="showusers()">
+                            <i class="fa fa-users"></i>
+                            <span class="tooltip">Users</span>
+                        </li>
+                        
+                        <li class="b">
+                            <i class="fa fa-sliders"></i>
+                            <span class="tooltip">Settings</span>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+
+            <div class="col-md-2" style=" border-right: 1px solid lightgray;" ng-if="showtask || createnew ||edit">
+                <button class="btn btn-danger" style=" width: 100%; margin-top: 25px;" ng-click="createnewtask()" ng-if="showtask"><i class="fa fa-plus" style="padding-right: 8px;" aria-hidden="true"></i>New Task</button>
+               
+                <button class="btn btn-danger" style=" width: 100%; margin-top: 25px;" ng-click="showtasks()" ng-if="createnew || edit"><i class="fa fa-arrow-left" style="padding-right: 8px;"></i>Back</button>
+                <hr />
+                <div style=" display: grid;">
+                    <span class="a" style=" font-weight: bolder;text-decoration:underline;"><i class="fa fa-tasks " style="padding-right: 8px;margin-bottom: 10px;"></i>All Tasks</span>
+                    <span class="a"><i class="fa fa-tasks " style="padding-right: 8px;margin-bottom: 10px;"></i>Assigned to me</span>
+                    <span class="a" style="margin-left: 15px;font-size: 14px; color: brown;"><i class="fa fa-exclamation-circle" style="padding-right: 8px;margin-bottom: 10px;"></i>Pending Tasks</span>
+                    <span class="a" style="margin-left: 15px;font-size: 14px; color: green;"><i class="fa fa-check-circle" style="padding-right: 8px;margin-bottom: 10px;"></i>Completed Tasks</span>
+                    <span class="a"><i class="fa fa-tasks " style="padding-right: 8px; margin-bottom: 10px;"></i>Created By me</span>
+                </div>
+            </div>
+            <div class="col-md-2" style=" border-right: 1px solid lightgray;" ng-if="showuser">
+                <button class="btn btn-danger" style=" width: 100%; margin-top: 25px;"><i class="fa fa-plus" style="padding-right: 8px;" aria-hidden="true"></i>New User</button>
+                <hr />
+                <div style=" display: grid;">
+                    <span class="a" style=" font-weight: bolder;text-decoration:underline;"><i class="fa fa-tasks " style="padding-right: 8px;margin-bottom: 10px;"></i>All Users</span>
+                    
+                </div>
+            </div>
+            <div class="col-md-9 ">
+                <div style="display: inline-block;width: 100%" ng-if="showtask ||showuser">
+                    <h2 style="float: left;
+        font-weight: bold;" ng-if="showtask">All Tasks</h2>
+                    <h2 style="float: left;
+        font-weight: bold;" ng-if="showuser">All Users</h2>
+
+                    <input style="float: right;margin-top: 25px;height: 35px;" type="text" placeholder="Search" ng-if="showtask" ng-change="searchitem(search)" ng-model="search"/>
+                </div>
+                <hr ng-if="showtask ||showuser"/>
+                <div class="scrollable" ng-if="!showloading && showtask">
+                    <ul class="responsive-table" dnd-list="tasks">
+                        <li class="table-header">
+                            <div class="col col-1">Id</div>
+                            <div class="col col-2">Assigned To</div>
+                            <div class="col col-4">Message</div>
+                            <div class="col col-2">Creation Date</div>
+                            <div class="col col-2">Due Date<i class="fa fa-sort" style="padding-left:5px;" ng-click="sorttask()"></i></div>
+                            <div class="col col-2"></div>
+
+                        </li>
+                       
+                            <li class="table-row " ng-repeat="x in tasks" dnd-draggable="x"
+        dnd-moved="tasks.splice($index, 1)"
+        dnd-effect-allowed="move" dnd-selected="tasks.selected = x"
+        ng-class="{'selected': tasks.selected === x}"
+        >
+                                <div class="col col-1" data-label="Job Id">{{x.id}}</div>
+                                <div class="col col-2" data-label="Customer Name">{{x.assigned_name ? x.assigned_name:'-'}}</div>
+                                <div class="col col-4" data-label="Amount">{{x.message}}</div>
+                                <div class="col col-2" data-label="Payment Status">{{x.created_on}}</div>
+                                <div class="col col-2" data-label="Payment Status">{{x.due_date ?x.due_date:'-'}}</div>
+                                <div class="col col-2">
+                                    <i class="fa fa-edit clickable" style="padding-right: 5px;cursor: pointer;" ng-click="edittask(x)"></i>
+                                    <i class="fa fa-trash clickable" style="padding-right: 5px;cursor: pointer;" ng-click="deletetask(x)"></i>
+                                </div>
+                            </li>
+                        
+
+                    </ul>
+                </div>
+
+                <!--  to list all users-->
+                <div class="mycardcol scrollable" style="overflow-y:hidden" ng-if="!showloading && showuser">
+                    <div class="card bg-light maincard column " ng-repeat="x in users">
+                        <img class="card-img-top myimg" ng-src="{{x.picture}}" alt="myimage" />
+                        <div class="card-head" style="padding-left: 1vh;background: #313443;">
+                            <h1 class="card-title name">{{x.name}}</h1>
+                        </div>
+                    </div>
+                </div>
+
+                <form ng-if="createnew ||edit" name="myForm" novalidate>
+                    <h1 class="formh1">New Task</h1>
+
+                    <div class="contentform">
+                        <div id="sendmessage"> Your message has been sent successfully. Thank you. </div>
+
+
+                        <div class="leftcontact">
+
+                            <div class="form-group">
+                                <p>Message <span>*</span></p>
+                                <span class="icon-case"><i class="fa fa-comments-o icon"></i></span>
+                                <textarea class="c" name="message" rows="14" ng-model="task.message" required></textarea>
+                                <span style="color:red;font-size:14px;" ng-show="myForm.message.$error.required && myForm.message.$touched">Username is required</span>
+                            </div>
+                            <div class="form-group">
+                                <p>Assign To:</p>
+                                <span class="icon-case"><i class="fa fa-male icon"></i></span>
+                                <select class="c" ng-model="task.assigned_to" ng-options="var.id as var.name for var in users">
+                                </select>
+
+                            </div>
+
+                            <div class="form-group">
+                                <p>Priority:</p>
+                                <span class="icon-case"><i class="fa fa-star"></i></span>
+                                <select ng-model="task.priority">
+                                    <option value="1">Normal</option>
+                                    <option value="2">Mid</option>
+                                    <option value="3">High</option>
+                                </select>
+
+                            </div>
+                            <div class="form-group">
+                                <p>Due Date: </p>
+                                <span class="icon-case"><i class="fa fa-calendar"></i></span>
+                                <input class="c" type="datetime-local" id="date" name="date" ng-model="task.due_date" />
+
+                            </div>
+
+                        </div>
+
+                    </div>
+                    <button type="submit" class="bouton-contact btn-success" ng-disabled="task.message=='' || myForm.message.$error.required" ng-click="submit()" ng-if="!showloading">Send</button>
+                    <button class="bouton-contact btn-success" ng-if="showloading && (createnew||edit)" style="text-align: center;">
+                        <img src="https://cdn.iconscout.com/icon/premium/png-512-thumb/loading-420-892992.png" style="vertical-align:middle;height:30px;" />
+                    </button>
+
+                </form>
+
+
+
+                <div ng-if="showloading && !(createnew||edit)" style="top: 40%; text-align: center; position: absolute; left: 40%; ">
+                    <img src="https://proofmart.com/wp-content/uploads/2020/09/loading-icon-2-product.png" style="vertical-align:middle;height:100px;" />
+                </div>
+            </div>
+        </div>
+        </div>
+   
+
+</body>
+</html>
